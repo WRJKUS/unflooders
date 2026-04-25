@@ -1,59 +1,67 @@
-# Netherlands FloodFarm Risk Mapper
+# Limburg FloodFarm Risk Mapper (MaasGuard) – Next.js 15
 
-Farm-level flood and nutrient mobilization MVP for CASSINI "Space for Water".
+Production-style Next.js 15 rewrite of the original Streamlit/Folium prototype.
 
-## Behavior
+## Stack
 
-- Uses a **local SQLite snapshot** for data loading in the app.
-- Loads **Netherlands-wide** farm parcels and flood risk polygons from SQLite at startup.
-- Does **not** re-download parcels when you pan or zoom.
-- Keeps Copernicus/EFAS layers as live WMS overlays on the map.
+- Next.js 15 (App Router) + React 19 + TypeScript strict
+- MapLibre GL JS 5.x
+- Tailwind CSS
+- Zustand for UI/map state
+- TanStack Query for data loading cache
+- Turf for score/spatial utilities
+- React PDF renderer for farm report export
 
-## Quickstart
+## Project structure
 
-1) Install dependencies
-
-```bash
-python3 -m pip install -r requirements.txt
+```text
+app/
+  layout.tsx
+  page.tsx
+  globals.css
+components/
+  Map.tsx
+  LayerControls.tsx
+  TimeSlider.tsx
+  Legend.tsx
+  RiskScoreCard.tsx
+  FarmPopup.tsx
+lib/
+  geo.ts
+  pdok.ts
+  pdf.tsx
+  store.ts
+public/data/
+  flood-historic.geojson
+  flood-current.geojson
+  flood-forecast.geojson
+scripts/
+  sqlite_snapshot_json.py
+tests/
+  unit/geo.test.ts
+  e2e/map.spec.ts
 ```
 
-2) Build/update the Netherlands SQLite snapshot
+## Run locally
 
 ```bash
-python3 scripts/download_nl_data.py
+npm install
+npm run dev
 ```
 
-Optional caps for faster snapshot builds:
+Open `http://localhost:3000`.
+
+## Build and quality checks
 
 ```bash
-python3 scripts/download_nl_data.py --max-farms 50000 --max-risk-zones 20000
+npm run lint
+npm run test
+npm run build
 ```
 
-Use `0` for a full fetch on either cap.
+## Notes
 
-3) Run app
-
-```bash
-streamlit run app.py
-```
-
-## SQLite snapshot
-
-- File: `data/floodfarm_nl.sqlite`
-- Created by: `scripts/download_nl_data.py`
-- Tables:
-  - `farms`
-  - `risk_zones`
-  - `discharge_points`
-  - `meta`
-
-## Data sources used by the download script
-
-- BRP parcels (PDOK OGC API): `https://api.pdok.nl/rvo/gewaspercelen/ogc/v1`
-- Flood risk zones (PDOK RWS): `https://api.pdok.nl/rws/overstromingen-risicogebied/ogc/v1`
-- Discharge snapshot (Open-Meteo Flood API, GloFAS-based): `https://flood-api.open-meteo.com/v1/flood`
-
-## Scoring model
-
-- `FloodRisk = 0.5 * flooded_area_pct + 0.3 * soil_saturation + 0.2 * historic_events`
-- `PollutionMobilization = FloodRisk * crop_factor * (turbidity_potential / 100)`
+- Farms and historic risk zones are now loaded from `data/floodfarm_nl.sqlite` via `/api/snapshot`.
+- Current and forecast masks still come from `public/data/flood-current.geojson` and `public/data/flood-forecast.geojson`.
+- If the SQLite file changes, the API refreshes every ~5 minutes (in-memory cache TTL).
+- Map component is GPU-accelerated and ready for larger datasets with simplification/tile strategy.

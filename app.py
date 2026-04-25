@@ -19,6 +19,20 @@ from streamlit_folium import st_folium
 
 
 st.set_page_config(page_title="Netherlands FloodFarm Risk Mapper", layout="wide")
+st.markdown(
+    """
+    <style>
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 0rem;
+    }
+    div[data-testid="stTabs"] iframe {
+        height: calc(100vh - 120px) !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 APP_TITLE = "Netherlands FloodFarm Risk Mapper"
 NETHERLANDS_CENTER = (52.2, 5.3)
@@ -352,16 +366,6 @@ def main() -> None:
         st.stop()
 
     map_farms = scored_farms.nlargest(MAX_MAP_PARCELS, "flood_risk_score").copy()
-
-    st.markdown("### Live Indicators")
-    m1, m2, m3, m4, m5 = st.columns(5)
-    m1.metric("Parcels loaded", f"{len(scored_farms):,}")
-    m2.metric("Parcels on map", f"{len(map_farms):,}")
-    m3.metric("Avg Flood Risk", f"{scored_farms['flood_risk_score'].mean():.1f}")
-    m4.metric("Avg Pollution Score", f"{scored_farms['pollution_mobilization_score'].mean():.1f}")
-    m5.metric("Snapshot date", snapshot_at)
-
-    st.markdown("---")
 
     tab_map, tab_data, tab_export = st.tabs(["🗺️ Map View", "📊 Data Tables", "📄 Reports"])
 
