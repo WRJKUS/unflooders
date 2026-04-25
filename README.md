@@ -1,45 +1,59 @@
-# Limburg FloodFarm Risk Mapper
+# Netherlands FloodFarm Risk Mapper
 
-Farm-level MVP for CASSINI "Space for Water" disaster risk monitoring, focused on Limburg (Meuse basin).
+Farm-level flood and nutrient mobilization MVP for CASSINI "Space for Water".
 
-## What it does
+## Behavior
 
-- Loads BRP farm parcels from PDOK (real data only, no synthetic fallback).
-- Shows toggleable layers for:
-  - Historic flood risk zones from PDOK RWS
-  - Current observed flood extent from Copernicus GFM WMS
-  - Forecast outlook from EFAS WMS
-- Computes per-farm scores:
-  - Flood Risk Score (0-100)
-  - Pollution Mobilization Score (0-100)
-- Supports time views (Historic / Current / +7d), autoplay animation, and PDF farm risk export.
+- Uses a **local SQLite snapshot** for data loading in the app.
+- Loads **Netherlands-wide** farm parcels and flood risk polygons from SQLite at startup.
+- Does **not** re-download parcels when you pan or zoom.
+- Keeps Copernicus/EFAS layers as live WMS overlays on the map.
 
 ## Quickstart
 
+1) Install dependencies
+
 ```bash
 python3 -m pip install -r requirements.txt
+```
+
+2) Build/update the Netherlands SQLite snapshot
+
+```bash
+python3 scripts/download_nl_data.py
+```
+
+Optional caps for faster snapshot builds:
+
+```bash
+python3 scripts/download_nl_data.py --max-farms 50000 --max-risk-zones 20000
+```
+
+Use `0` for a full fetch on either cap.
+
+3) Run app
+
+```bash
 streamlit run app.py
 ```
 
-## Data sources and integration points
+## SQLite snapshot
 
-- BRP parcels (PDOK):
-  - `https://api.pdok.nl/rvo/gewaspercelen/ogc/v1`
-  - Legacy WFS fallback: `https://service.pdok.nl/rvo/brpgewaspercelen/wfs/v1_0`
-- Historic flood zones (PDOK RWS): `https://api.pdok.nl/rws/overstromingen-risicogebied/ogc/v1`
-- Current flood extent layer (Copernicus GFM WMS): `https://geoserver.gfm.eodc.eu/geoserver/gfm/wms`
-- Forecast outlook layer (EFAS WMS): `https://european-flood.emergency.copernicus.eu/api/wms/`
-- River discharge (Open-Meteo Flood API, based on GloFAS): `https://flood-api.open-meteo.com/v1/flood`
+- File: `data/floodfarm_nl.sqlite`
+- Created by: `scripts/download_nl_data.py`
+- Tables:
+  - `farms`
+  - `risk_zones`
+  - `discharge_points`
+  - `meta`
+
+## Data sources used by the download script
+
+- BRP parcels (PDOK OGC API): `https://api.pdok.nl/rvo/gewaspercelen/ogc/v1`
+- Flood risk zones (PDOK RWS): `https://api.pdok.nl/rws/overstromingen-risicogebied/ogc/v1`
+- Discharge snapshot (Open-Meteo Flood API, GloFAS-based): `https://flood-api.open-meteo.com/v1/flood`
 
 ## Scoring model
 
 - `FloodRisk = 0.5 * flooded_area_pct + 0.3 * soil_saturation + 0.2 * historic_events`
 - `PollutionMobilization = FloodRisk * crop_factor * (turbidity_potential / 100)`
-
-Crop factors are hardcoded for MVP behavior (maize/potatoes high, grassland lower).
-
-## Notes for submission demo
-
-- Focus area is Limburg bbox: lat `50.7-51.5`, lon `5.5-6.3`.
-- Use the right panel "Top At-Risk Farms" + PDF export for farmer-facing explainability.
-- This build intentionally fails closed: if live sources are unavailable, the app shows an error instead of generating synthetic geometry.
