@@ -133,10 +133,10 @@ def compute_scores(
 
 def risk_color(score: float) -> str:
     if score < 30:
-        return "#2e8b57"
+        return "#fae94d"
     if score < 60:
-        return "#f2b134"
-    return "#c43302"
+        return "#b35d12"
+    return "#a30505"
 
 
 def add_legend(map_obj: folium.Map) -> None:
@@ -172,6 +172,7 @@ def build_map(
     show_historic: bool,
     show_current: bool,
     show_forecast: bool,
+    show_brp_wms: bool,
 ) -> folium.Map:
     fmap = folium.Map(location=NETHERLANDS_CENTER, zoom_start=7, tiles="cartodbpositron", control_scale=True)
 
@@ -234,6 +235,18 @@ def build_map(
             overlay=True,
             control=True,
             opacity=0.45,
+        ).add_to(fmap)
+
+    if show_brp_wms:
+        folium.raster_layers.WmsTileLayer(
+            url="https://service.pdok.nl/rvo/gewaspercelen/wms/v1_0",
+            layers="BrpGewas",
+            name="BRP Gewaspercelen (PDOK WMS)",
+            fmt="image/png",
+            transparent=True,
+            overlay=True,
+            control=True,
+            opacity=0.55,
         ).add_to(fmap)
 
     folium.LayerControl(collapsed=False).add_to(fmap)
@@ -312,6 +325,12 @@ def main() -> None:
         show_historic = st.checkbox("Show historic flood zones (PDOK)", value=True)
         show_current = st.checkbox("Show current flood extent (Copernicus GFM)", value=True)
         show_forecast = st.checkbox("Show +7d forecast outlook (EFAS)", value=True)
+        show_brp_wms = st.checkbox("Show BRP parcels layer (PDOK WMS)", value=False)
+        st.markdown(
+            "BRP Atom feed: "
+            "[basisregistratie_gewaspercelen_brp.xml]"
+            "(https://service.pdok.nl/rvo/gewaspercelen/atom/basisregistratie_gewaspercelen_brp.xml)"
+        )
 
         today = date.today()
         acquisition_dates = [today - timedelta(days=6 * i) for i in range(6)][::-1]
@@ -333,25 +352,29 @@ def main() -> None:
         st.stop()
 
     map_farms = scored_farms.nlargest(MAX_MAP_PARCELS, "flood_risk_score").copy()
-    map_col, panel_col = st.columns([2.0, 1.0], gap="large")
 
-    with map_col:
-        fmap = build_map(map_farms, risk_zones, show_historic, show_current, show_forecast)
+    st.markdown("### Live Indicators")
+    m1, m2, m3, m4, m5 = st.columns(5)
+    m1.metric("Parcels loaded", f"{len(scored_farms):,}")
+    m2.metric("Parcels on map", f"{len(map_farms):,}")
+    m3.metric("Avg Flood Risk", f"{scored_farms['flood_risk_score'].mean():.1f}")
+    m4.metric("Avg Pollution Score", f"{scored_farms['pollution_mobilization_score'].mean():.1f}")
+    m5.metric("Snapshot date", snapshot_at)
+
+    st.markdown("---")
+
+    tab_map, tab_data, tab_export = st.tabs(["🗺️ Map View", "📊 Data Tables", "📄 Reports"])
+
+    with tab_map:
+        fmap = build_map(map_farms, risk_zones, show_historic, show_current, show_forecast, show_brp_wms)
         st_folium(fmap, use_container_width=True, height=740, returned_objects=[])
 
-    with panel_col:
-        st.markdown("### Live Indicators")
-        st.metric("Parcels loaded (SQLite)", f"{len(scored_farms):,}")
-        st.metric("Parcels on map", f"{len(map_farms):,}")
-        st.metric("Avg Flood Risk", f"{scored_farms['flood_risk_score'].mean():.1f}")
-        st.metric("Avg Pollution Score", f"{scored_farms['pollution_mobilization_score'].mean():.1f}")
-        st.metric("Snapshot date", snapshot_at)
-
+    with tab_data:
         st.markdown("### River Discharge Snapshot")
         discharge_table = discharge_points.copy()
         for col in ["baseline_m3s", "current_m3s", "forecast_peak_m3s", "current_score", "forecast_score"]:
             discharge_table[col] = discharge_table[col].round(1)
-        st.dataframe(discharge_table, use_container_width=True, height=190)
+        st.dataframe(discharge_table, use_container_width=True)
 
         st.markdown("### Top At-Risk Farms")
         top_risk = scored_farms.nlargest(10, "flood_risk_score")[
@@ -360,9 +383,11 @@ def main() -> None:
         top_risk["area_ha"] = top_risk["area_ha"].round(2)
         top_risk["flood_risk_score"] = top_risk["flood_risk_score"].round(1)
         top_risk["pollution_mobilization_score"] = top_risk["pollution_mobilization_score"].round(1)
-        st.dataframe(top_risk, use_container_width=True, height=230)
+        st.dataframe(top_risk, use_container_width=True)
 
+    with tab_export:
         st.markdown("### Farm Report Export")
+        st.info("Select a farm below to generate a detailed PDF risk report.")
         report_farms = scored_farms.nlargest(MAX_REPORT_PARCELS, "flood_risk_score").copy()
         farm_choice = st.selectbox("Choose farm", options=report_farms["farm_id"].tolist())
         farm_row = report_farms.loc[report_farms["farm_id"] == farm_choice].iloc[0]
