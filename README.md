@@ -1,6 +1,6 @@
 # Unflooders – Next.js 15
 
-MapLibre-based flood risk mapper for Limburg/Meuse agriculture, built with Next.js App Router.
+MapLibre-based flood risk mapper for Netherlands agriculture, built with Next.js App Router.
 
 ## Current implementation
 
