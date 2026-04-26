@@ -194,33 +194,7 @@ export default function Map({ farms, historic, current, forecast }: MapProps) {
         }
       })
 
-      map.addSource(SOURCE_IDS.forecast, { type: "geojson", data: forecast as GeoJSON.FeatureCollection })
-      map.addLayer({
-        id: "forecast-fill",
-        type: "fill",
-        source: SOURCE_IDS.forecast,
-        paint: {
-          "fill-color": [
-            "case",
-            [">=", ["coalesce", ["get", "probability"], 0], 70],
-            "#ff5e00",
-            [">=", ["coalesce", ["get", "probability"], 0], 40],
-            "#ff8c00",
-            "#f2b134"
-          ],
-          "fill-opacity": 0.42
-        }
-      })
-      map.addLayer({
-        id: "forecast-outline",
-        type: "line",
-        source: SOURCE_IDS.forecast,
-        paint: {
-          "line-color": "#c85a00",
-          "line-width": 1.5,
-          "line-opacity": 0.9
-        }
-      })
+
 
       map.addSource("efas-forecast-wms", {
         type: "raster",
@@ -324,8 +298,6 @@ export default function Map({ farms, historic, current, forecast }: MapProps) {
     setVisibility("farms-outline", layerVisibility.farms)
     setVisibility("historic-fill", layerVisibility.historic)
     setVisibility("current-fill", layerVisibility.current)
-    setVisibility("forecast-fill", layerVisibility.forecast)
-    setVisibility("forecast-outline", layerVisibility.forecast)
     setVisibility("forecast-efas-raster", layerVisibility.forecast)
     setVisibility("emoji-symbol", layerVisibility.emoji)
     setVisibility("emoji-clusters", layerVisibility.emoji)
