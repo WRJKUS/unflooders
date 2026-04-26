@@ -13,9 +13,7 @@ export default function LayerControls() {
           [
             ["farms", "Farm parcels"],
             ["historic", "Historic flood"],
-            ["current", "Current flood"],
-            ["forecast", "7-day forecast"],
-            ["emoji", "Emoji markers"]
+            ["forecast", "7-day forecast"]
           ] as const
         ).map(([key, label]) => (
           <label key={key} className="flex items-center justify-between gap-3">

@@ -7,7 +7,6 @@ import LayerControls from "@/components/LayerControls"
 import Legend from "@/components/Legend"
 import { scoreFarmCollection } from "@/lib/geo"
 import {
-  loadCurrentFloods,
   loadForecastFloods,
   loadSnapshot
 } from "@/lib/pdok"
@@ -21,14 +20,13 @@ function MainPage() {
   const timeView = "current" as const
 
   const snapshotQuery = useQuery({ queryKey: ["snapshot"], queryFn: loadSnapshot })
-  const currentQuery = useQuery({ queryKey: ["current"], queryFn: loadCurrentFloods })
   const forecastQuery = useQuery({ queryKey: ["forecast"], queryFn: loadForecastFloods })
 
-  const loading = snapshotQuery.isLoading || currentQuery.isLoading || forecastQuery.isLoading
-  const hasError = snapshotQuery.error || currentQuery.error || forecastQuery.error
+  const loading = snapshotQuery.isLoading || forecastQuery.isLoading
+  const hasError = snapshotQuery.error || forecastQuery.error
 
   const scoredFarms = useMemo<FarmCollection | null>(() => {
-    if (!snapshotQuery.data || !currentQuery.data || !forecastQuery.data) return null
+    if (!snapshotQuery.data || !forecastQuery.data) return null
 
     const dischargeCurrentScore =
       snapshotQuery.data.discharge.length > 0
@@ -47,13 +45,13 @@ function MainPage() {
       dischargeCurrentScore,
       dischargeForecastScore
     )
-  }, [currentQuery.data, forecastQuery.data, snapshotQuery.data, timeView])
+  }, [forecastQuery.data, snapshotQuery.data, timeView])
 
   if (loading) {
     return <div className="p-8 text-sm text-slate-600">Loading map and flood layers...</div>
   }
 
-  if (hasError || !scoredFarms || !currentQuery.data || !forecastQuery.data || !snapshotQuery.data) {
+  if (hasError || !scoredFarms || !forecastQuery.data || !snapshotQuery.data) {
     return (
       <div className="p-8 text-sm text-red-600">
         Failed to load map data. Check `public/data/*.geojson` and network connectivity.
@@ -81,7 +79,6 @@ function MainPage() {
           <Map
             farms={scoredFarms}
             historic={snapshotQuery.data.riskZones}
-            current={currentQuery.data}
             forecast={forecastQuery.data}
           />
         </section>

@@ -16,11 +16,6 @@ export async function loadHistoricFloods(): Promise<FloodCollection> {
   return snapshot.riskZones
 }
 
-export async function loadCurrentFloods(): Promise<FloodCollection> {
-  const response = await fetch("/data/flood-current.geojson")
-  if (!response.ok) throw new Error("Failed to load current flood layer")
-  return (await response.json()) as FloodCollection
-}
 
 export async function loadForecastFloods(): Promise<FloodCollection> {
   const response = await fetch("/data/flood-forecast.geojson")

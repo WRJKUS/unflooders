@@ -15,9 +15,7 @@ export const useFloodFarmStore = create<FloodFarmState>((set) => ({
   layerVisibility: {
     farms: true,
     historic: true,
-    current: true,
-    forecast: true,
-    emoji: true
+    forecast: true
   },
   selectedFarmId: null,
   setTimeView: (timeView) => set({ timeView }),

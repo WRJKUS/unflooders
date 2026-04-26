@@ -52,7 +52,5 @@ export type SnapshotPayload = {
 export type LayerVisibility = {
   farms: boolean
   historic: boolean
-  current: boolean
   forecast: boolean
-  emoji: boolean
 }
