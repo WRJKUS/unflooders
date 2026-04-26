@@ -7,8 +7,8 @@ export default function LayerControls() {
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm">
-      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">Layers</h3>
-      <div className="space-y-2 text-sm">
+      <h3 className="mb-3 font-semibold uppercase tracking-wide text-slate-600" style={{ fontSize: '2em' }}>Layers</h3>
+      <div className="space-y-2" style={{ fontSize: '1.5em' }}>
         {(
           [
             ["farms", "Farm parcels"],

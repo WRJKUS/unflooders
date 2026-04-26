@@ -62,11 +62,11 @@ function MainPage() {
   return (
     <main className="min-h-screen p-4 md:p-6">
       <div className="mb-4 flex flex-col gap-2">
-        <h1 className="text-2xl font-bold text-slate-900">Limburg FloodFarm Risk Mapper (MaasGuard)</h1>
-        <p className="text-sm text-slate-600">
+        <h1 className="font-bold text-slate-900" style={{ fontSize: '2em' }}>Limburg FloodFarm Risk Mapper (MaasGuard)</h1>
+        <p className="text-slate-600" style={{ fontSize: '1.5em' }}>
           Next.js + MapLibre refactor for farm-level flood and pollution mobilization intelligence.
         </p>
-        <p className="text-xs text-slate-500">SQLite snapshot: {snapshotQuery.data.snapshotAt}</p>
+        <p className="text-slate-500" style={{ fontSize: '1.5em' }}>SQLite snapshot: {snapshotQuery.data.snapshotAt}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
