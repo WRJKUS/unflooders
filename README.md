@@ -1,6 +1,5 @@
-# Limburg FloodFarm Risk Mapper (MaasGuard) – Next.js 15
+# unflooders – Next.js 15
 
-Production-style Next.js 15 rewrite of the original Streamlit/Folium prototype.
 
 ## Stack
 
@@ -58,10 +57,3 @@ npm run lint
 npm run test
 npm run build
 ```
-
-## Notes
-
-- Farms and historic risk zones are now loaded from `data/floodfarm_nl.sqlite` via `/api/snapshot`.
-- Current and forecast masks still come from `public/data/flood-current.geojson` and `public/data/flood-forecast.geojson`.
-- If the SQLite file changes, the API refreshes every ~5 minutes (in-memory cache TTL).
-- Map component is GPU-accelerated and ready for larger datasets with simplification/tile strategy.
